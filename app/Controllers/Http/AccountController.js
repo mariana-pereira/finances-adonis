@@ -1,92 +1,43 @@
 'use strict'
 
-/** @typedef {import('@adonisjs/framework/src/Request')} Request */
-/** @typedef {import('@adonisjs/framework/src/Response')} Response */
-/** @typedef {import('@adonisjs/framework/src/View')} View */
+const Account = use('App/Models/Account')
 
-/**
- * Resourceful controller for interacting with accounts
- */
 class AccountController {
-  /**
-   * Show a list of all accounts.
-   * GET accounts
-   *
-   * @param {object} ctx
-   * @param {Request} ctx.request
-   * @param {Response} ctx.response
-   * @param {View} ctx.view
-   */
-  async index ({ request, response, view }) {
+  async index ({ auth }) {
+    const accounts = await Account.query().where('user_id', auth.user.id).fetch()
+
+    return accounts
   }
 
-  /**
-   * Render a form to be used for creating a new account.
-   * GET accounts/create
-   *
-   * @param {object} ctx
-   * @param {Request} ctx.request
-   * @param {Response} ctx.response
-   * @param {View} ctx.view
-   */
-  async create ({ request, response, view }) {
+  async store ({ request, auth }) {
+    const data = request.only(['bank', 'branch', 'account_number', 'account_type'])
+
+    const account = await Account.create({ ...data, user_id: auth.user.id })
+
+    return account
   }
 
-  /**
-   * Create/save a new account.
-   * POST accounts
-   *
-   * @param {object} ctx
-   * @param {Request} ctx.request
-   * @param {Response} ctx.response
-   */
-  async store ({ request, response }) {
+  async show ({ params }) {
+    const account = await Account.findOrFail(params.id)
+
+    return account
   }
 
-  /**
-   * Display a single account.
-   * GET accounts/:id
-   *
-   * @param {object} ctx
-   * @param {Request} ctx.request
-   * @param {Response} ctx.response
-   * @param {View} ctx.view
-   */
-  async show ({ params, request, response, view }) {
+  async update ({ params, request }) {
+    const account = await Account.findOrFail(params.id)
+    const data = request.only(['bank', 'branch', 'account_number', 'account_type'])
+
+    account.merge(data)
+
+    await account.save()
+
+    return account
   }
 
-  /**
-   * Render a form to update an existing account.
-   * GET accounts/:id/edit
-   *
-   * @param {object} ctx
-   * @param {Request} ctx.request
-   * @param {Response} ctx.response
-   * @param {View} ctx.view
-   */
-  async edit ({ params, request, response, view }) {
-  }
+  async destroy ({ params }) {
+    const account = await Account.findOrFail(params.id)
 
-  /**
-   * Update account details.
-   * PUT or PATCH accounts/:id
-   *
-   * @param {object} ctx
-   * @param {Request} ctx.request
-   * @param {Response} ctx.response
-   */
-  async update ({ params, request, response }) {
-  }
-
-  /**
-   * Delete a account with id.
-   * DELETE accounts/:id
-   *
-   * @param {object} ctx
-   * @param {Request} ctx.request
-   * @param {Response} ctx.response
-   */
-  async destroy ({ params, request, response }) {
+    account.delete()
   }
 }
 
