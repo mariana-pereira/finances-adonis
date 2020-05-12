@@ -1,10 +1,13 @@
 'use strict'
 
 const Account = use('App/Models/Account')
+const Database = use('Database')
 
 class AccountController {
   async index ({ auth }) {
-    const accounts = await Account.query().where('user_id', auth.user.id).fetch()
+    const accounts = await Account.query()
+      .where('user_id', auth.user.id)
+      .fetch()
 
     return accounts
   }
@@ -20,7 +23,12 @@ class AccountController {
   async show ({ params }) {
     const account = await Account.findOrFail(params.id)
 
-    return account
+    const accountBalance = await Database
+      .from('transactions')
+      .sum('amount')
+      .where('account_id', account.id)
+
+    return { account, accountBalance }
   }
 
   async update ({ params, request }) {
