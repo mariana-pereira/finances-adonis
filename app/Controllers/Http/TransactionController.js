@@ -1,92 +1,59 @@
 'use strict'
 
-/** @typedef {import('@adonisjs/framework/src/Request')} Request */
-/** @typedef {import('@adonisjs/framework/src/Response')} Response */
-/** @typedef {import('@adonisjs/framework/src/View')} View */
+const Transaction = use('App/Models/Transaction')
 
-/**
- * Resourceful controller for interacting with transactions
- */
 class TransactionController {
-  /**
-   * Show a list of all transactions.
-   * GET transactions
-   *
-   * @param {object} ctx
-   * @param {Request} ctx.request
-   * @param {Response} ctx.response
-   * @param {View} ctx.view
-   */
-  async index ({ request, response, view }) {
+  async index ({ params }) {
+    const transactions = await Transaction.query()
+      .where('account_id', params.accounts_id)
+      .fetch()
+
+    return transactions
   }
 
-  /**
-   * Render a form to be used for creating a new transaction.
-   * GET transactions/create
-   *
-   * @param {object} ctx
-   * @param {Request} ctx.request
-   * @param {Response} ctx.response
-   * @param {View} ctx.view
-   */
-  async create ({ request, response, view }) {
+  async store ({ params, request, auth }) {
+    const data = request.only([
+      'date',
+      'amount',
+      'type',
+      'category'
+    ])
+
+    const transaction = await Transaction.create({
+      ...data,
+      account_id: params.accounts_id,
+      user_id: auth.user.id
+    })
+
+    return transaction
   }
 
-  /**
-   * Create/save a new transaction.
-   * POST transactions
-   *
-   * @param {object} ctx
-   * @param {Request} ctx.request
-   * @param {Response} ctx.response
-   */
-  async store ({ request, response }) {
+  async show ({ params }) {
+    const transaction = await Transaction.findOrFail(params.id)
+
+    return transaction
   }
 
-  /**
-   * Display a single transaction.
-   * GET transactions/:id
-   *
-   * @param {object} ctx
-   * @param {Request} ctx.request
-   * @param {Response} ctx.response
-   * @param {View} ctx.view
-   */
-  async show ({ params, request, response, view }) {
+  async update ({ params, request }) {
+    const transaction = await Transaction.findOrFail(params.id)
+    const data = request.only([
+      'date',
+      'amount',
+      'type',
+      'category'
+    ])
+
+    transaction.merge(data)
+
+    await transaction.save()
+
+    return transaction
   }
 
-  /**
-   * Render a form to update an existing transaction.
-   * GET transactions/:id/edit
-   *
-   * @param {object} ctx
-   * @param {Request} ctx.request
-   * @param {Response} ctx.response
-   * @param {View} ctx.view
-   */
-  async edit ({ params, request, response, view }) {
-  }
+  async destroy ({ params }) {
+    const transaction = await Transaction.findOrFail(params.id)
 
-  /**
-   * Update transaction details.
-   * PUT or PATCH transactions/:id
-   *
-   * @param {object} ctx
-   * @param {Request} ctx.request
-   * @param {Response} ctx.response
-   */
-  async update ({ params, request, response }) {
-  }
-
-  /**
-   * Delete a transaction with id.
-   * DELETE transactions/:id
-   *
-   * @param {object} ctx
-   * @param {Request} ctx.request
-   * @param {Response} ctx.response
-   */
-  async destroy ({ params, request, response }) {
+    transaction.delete()
   }
 }
 

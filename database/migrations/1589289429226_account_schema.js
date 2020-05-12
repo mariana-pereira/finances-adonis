@@ -19,8 +19,6 @@ class AccountSchema extends Schema {
       table.string('branch').notNullable()
       table.string('account_number').notNullable()
       table.string('account_type').notNullable()
-      table.decimal('account_balance', 10, 2)
-      table.decimal('investments_balance', 10, 2)
       table.timestamps()
     })
   }
