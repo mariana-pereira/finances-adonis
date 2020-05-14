@@ -1,92 +1,53 @@
 'use strict'
 
-/** @typedef {import('@adonisjs/framework/src/Request')} Request */
-/** @typedef {import('@adonisjs/framework/src/Response')} Response */
-/** @typedef {import('@adonisjs/framework/src/View')} View */
+const Card = use('App/Models/Card')
+const Database = use('Database')
 
-/**
- * Resourceful controller for interacting with cards
- */
 class CardController {
-  /**
-   * Show a list of all cards.
-   * GET cards
-   *
-   * @param {object} ctx
-   * @param {Request} ctx.request
-   * @param {Response} ctx.response
-   * @param {View} ctx.view
-   */
-  async index ({ request, response, view }) {
+  async index ({ auth }) {
+    const cards = await Card.query()
+      .where('user_id', auth.user.id)
+      .fetch()
+
+    return cards
   }
 
-  /**
-   * Render a form to be used for creating a new card.
-   * GET cards/create
-   *
-   * @param {object} ctx
-   * @param {Request} ctx.request
-   * @param {Response} ctx.response
-   * @param {View} ctx.view
-   */
-  async create ({ request, response, view }) {
+  async store ({ request, auth }) {
+    const data = request.only(['name', 'number', 'limit', 'expiry_date'])
+
+    const card = await Card.create({ ...data, user_id: auth.user.id })
+
+    return card
   }
 
-  /**
-   * Create/save a new card.
-   * POST cards
-   *
-   * @param {object} ctx
-   * @param {Request} ctx.request
-   * @param {Response} ctx.response
-   */
-  async store ({ request, response }) {
+  async show ({ params }) {
+    const card = await Card.findOrFail(params.id)
+
+    const expenses = await Database
+      .from('expenses')
+      .sum('amount')
+      .where('card_id', card.id)
+
+    const availableLimit = parseFloat(card.limit) - parseFloat(expenses[0].sum)
+
+    return { card, availableLimit }
   }
 
-  /**
-   * Display a single card.
-   * GET cards/:id
-   *
-   * @param {object} ctx
-   * @param {Request} ctx.request
-   * @param {Response} ctx.response
-   * @param {View} ctx.view
-   */
-  async show ({ params, request, response, view }) {
+  async update ({ params, request }) {
+    const card = await Card.findOrFail(params.id)
+    const data = request.only(['name', 'number', 'limit', 'expiry_date'])
+
+    card.merge(data)
+
+    await card.save()
+
+    return card
   }
 
-  /**
-   * Render a form to update an existing card.
-   * GET cards/:id/edit
-   *
-   * @param {object} ctx
-   * @param {Request} ctx.request
-   * @param {Response} ctx.response
-   * @param {View} ctx.view
-   */
-  async edit ({ params, request, response, view }) {
-  }
+  async destroy ({ params }) {
+    const card = await Card.findOrFail(params.id)
 
-  /**
-   * Update card details.
-   * PUT or PATCH cards/:id
-   *
-   * @param {object} ctx
-   * @param {Request} ctx.request
-   * @param {Response} ctx.response
-   */
-  async update ({ params, request, response }) {
-  }
-
-  /**
-   * Delete a card with id.
-   * DELETE cards/:id
-   *
-   * @param {object} ctx
-   * @param {Request} ctx.request
-   * @param {Response} ctx.response
-   */
-  async destroy ({ params, request, response }) {
+    card.delete()
   }
 }
 

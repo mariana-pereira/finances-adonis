@@ -10,5 +10,8 @@ Route.put('passwords', 'ForgotPasswordController.update')
 
 Route.group(() => {
   Route.resource('accounts', 'AccountController').apiOnly()
+
+  Route.resource('cards', 'CardController').apiOnly()
+
   Route.resource('accounts.transactions', 'TransactionController').apiOnly()
 }).middleware(['auth'])
