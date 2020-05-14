@@ -1,92 +1,56 @@
 'use strict'
 
-/** @typedef {import('@adonisjs/framework/src/Request')} Request */
-/** @typedef {import('@adonisjs/framework/src/Response')} Response */
-/** @typedef {import('@adonisjs/framework/src/View')} View */
+const Invoice = use('App/Models/Invoice')
+const Database = use('Database')
 
-/**
- * Resourceful controller for interacting with invoices
- */
 class InvoiceController {
-  /**
-   * Show a list of all invoices.
-   * GET invoices
-   *
-   * @param {object} ctx
-   * @param {Request} ctx.request
-   * @param {Response} ctx.response
-   * @param {View} ctx.view
-   */
-  async index ({ request, response, view }) {
+  async index ({ auth }) {
+    const invoices = await Invoice.query()
+      .where('user_id', auth.user.id)
+      .fetch()
+
+    return invoices
   }
 
-  /**
-   * Render a form to be used for creating a new invoice.
-   * GET invoices/create
-   *
-   * @param {object} ctx
-   * @param {Request} ctx.request
-   * @param {Response} ctx.response
-   * @param {View} ctx.view
-   */
-  async create ({ request, response, view }) {
+  async store ({ params, request, auth }) {
+    const data = request.only(['name', 'month', 'year', 'expiry_date'])
+
+    const invoice = await Invoice.create({
+      ...data,
+      user_id: auth.user.id,
+      card_id: params.cards_id,
+      paid: false
+    })
+
+    return invoice
   }
 
-  /**
-   * Create/save a new invoice.
-   * POST invoices
-   *
-   * @param {object} ctx
-   * @param {Request} ctx.request
-   * @param {Response} ctx.response
-   */
-  async store ({ request, response }) {
+  async show ({ params }) {
+    const invoice = await Invoice.findOrFail(params.id)
+
+    const invoiceAmount = await Database
+      .from('expenses')
+      .sum('amount')
+      .where('invoice_id', invoice.id)
+
+    return { invoice, invoiceAmount }
   }
 
-  /**
-   * Display a single invoice.
-   * GET invoices/:id
-   *
-   * @param {object} ctx
-   * @param {Request} ctx.request
-   * @param {Response} ctx.response
-   * @param {View} ctx.view
-   */
-  async show ({ params, request, response, view }) {
+  async update ({ params, request }) {
+    const invoice = await Invoice.findOrFail(params.id)
+    const data = request.only(['name', 'month', 'year', 'expiry_date'])
+
+    invoice.merge(data)
+
+    await invoice.save()
+
+    return invoice
   }
 
-  /**
-   * Render a form to update an existing invoice.
-   * GET invoices/:id/edit
-   *
-   * @param {object} ctx
-   * @param {Request} ctx.request
-   * @param {Response} ctx.response
-   * @param {View} ctx.view
-   */
-  async edit ({ params, request, response, view }) {
-  }
+  async destroy ({ params }) {
+    const invoice = await Invoice.findOrFail(params.id)
 
-  /**
-   * Update invoice details.
-   * PUT or PATCH invoices/:id
-   *
-   * @param {object} ctx
-   * @param {Request} ctx.request
-   * @param {Response} ctx.response
-   */
-  async update ({ params, request, response }) {
-  }
-
-  /**
-   * Delete a invoice with id.
-   * DELETE invoices/:id
-   *
-   * @param {object} ctx
-   * @param {Request} ctx.request
-   * @param {Response} ctx.response
-   */
-  async destroy ({ params, request, response }) {
+    invoice.delete()
   }
 }
 
