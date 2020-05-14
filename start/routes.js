@@ -14,4 +14,5 @@ Route.group(() => {
 
   Route.resource('cards', 'CardController').apiOnly()
   Route.resource('cards.invoices', 'InvoiceController').apiOnly()
+  Route.resource('cards.invoices.expenses', 'ExpenseController').apiOnly()
 }).middleware(['auth'])

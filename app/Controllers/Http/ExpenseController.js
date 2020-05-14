@@ -1,92 +1,50 @@
 'use strict'
 
-/** @typedef {import('@adonisjs/framework/src/Request')} Request */
-/** @typedef {import('@adonisjs/framework/src/Response')} Response */
-/** @typedef {import('@adonisjs/framework/src/View')} View */
+const Expense = use('App/Models/Expense')
 
-/**
- * Resourceful controller for interacting with expenses
- */
 class ExpenseController {
-  /**
-   * Show a list of all expenses.
-   * GET expenses
-   *
-   * @param {object} ctx
-   * @param {Request} ctx.request
-   * @param {Response} ctx.response
-   * @param {View} ctx.view
-   */
-  async index ({ request, response, view }) {
+  async index ({ auth }) {
+    const expenses = await Expense.query()
+      .where('user_id', auth.user.id)
+      .fetch()
+
+    return expenses
   }
 
-  /**
-   * Render a form to be used for creating a new expense.
-   * GET expenses/create
-   *
-   * @param {object} ctx
-   * @param {Request} ctx.request
-   * @param {Response} ctx.response
-   * @param {View} ctx.view
-   */
-  async create ({ request, response, view }) {
+  async store ({ params, request, auth }) {
+    const data = request.only(['date', 'amount', 'shop', 'category'])
+
+    const expense = await Expense.create({
+      ...data,
+      user_id: auth.user.id,
+      card_id: params.cards_id,
+      invoice_id: params.invoices_id
+    })
+
+    return expense
   }
 
-  /**
-   * Create/save a new expense.
-   * POST expenses
-   *
-   * @param {object} ctx
-   * @param {Request} ctx.request
-   * @param {Response} ctx.response
-   */
-  async store ({ request, response }) {
+  async show ({ params }) {
+    const expense = await Expense.findOrFail(params.id)
+
+    return expense
   }
 
-  /**
-   * Display a single expense.
-   * GET expenses/:id
-   *
-   * @param {object} ctx
-   * @param {Request} ctx.request
-   * @param {Response} ctx.response
-   * @param {View} ctx.view
-   */
-  async show ({ params, request, response, view }) {
+  async update ({ params, request }) {
+    const expense = await Expense.findOrFail(params.id)
+    const data = request.only(['date', 'amount', 'shop', 'category'])
+
+    expense.merge(data)
+
+    await expense.save()
+
+    return expense
   }
 
-  /**
-   * Render a form to update an existing expense.
-   * GET expenses/:id/edit
-   *
-   * @param {object} ctx
-   * @param {Request} ctx.request
-   * @param {Response} ctx.response
-   * @param {View} ctx.view
-   */
-  async edit ({ params, request, response, view }) {
-  }
+  async destroy ({ params }) {
+    const expense = await Expense.findOrFail(params.id)
 
-  /**
-   * Update expense details.
-   * PUT or PATCH expenses/:id
-   *
-   * @param {object} ctx
-   * @param {Request} ctx.request
-   * @param {Response} ctx.response
-   */
-  async update ({ params, request, response }) {
-  }
-
-  /**
-   * Delete a expense with id.
-   * DELETE expenses/:id
-   *
-   * @param {object} ctx
-   * @param {Request} ctx.request
-   * @param {Response} ctx.response
-   */
-  async destroy ({ params, request, response }) {
+    expense.delete()
   }
 }
 
