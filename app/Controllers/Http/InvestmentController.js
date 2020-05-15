@@ -1,92 +1,64 @@
 'use strict'
 
-/** @typedef {import('@adonisjs/framework/src/Request')} Request */
-/** @typedef {import('@adonisjs/framework/src/Response')} Response */
-/** @typedef {import('@adonisjs/framework/src/View')} View */
+const Investment = use('App/Models/Investment')
 
-/**
- * Resourceful controller for interacting with investments
- */
 class InvestmentController {
-  /**
-   * Show a list of all investments.
-   * GET investments
-   *
-   * @param {object} ctx
-   * @param {Request} ctx.request
-   * @param {Response} ctx.response
-   * @param {View} ctx.view
-   */
-  async index ({ request, response, view }) {
+  async index ({ auth }) {
+    const investments = await Investment.query()
+      .where('user_id', auth.user.id)
+      .fetch()
+
+    return investments
   }
 
-  /**
-   * Render a form to be used for creating a new investment.
-   * GET investments/create
-   *
-   * @param {object} ctx
-   * @param {Request} ctx.request
-   * @param {Response} ctx.response
-   * @param {View} ctx.view
-   */
-  async create ({ request, response, view }) {
+  async store ({ params, request, auth }) {
+    const data = request.only([
+      'name',
+      'type',
+      'tax',
+      'application_date',
+      'redeem_date',
+      'amount'
+    ])
+
+    const investment = await Investment.create({
+      ...data,
+      user_id: auth.user.id,
+      account_id: params.accounts_id,
+      target_id: params.targets_id
+    })
+
+    return investment
   }
 
-  /**
-   * Create/save a new investment.
-   * POST investments
-   *
-   * @param {object} ctx
-   * @param {Request} ctx.request
-   * @param {Response} ctx.response
-   */
-  async store ({ request, response }) {
+  async show ({ params }) {
+    const investment = await Investment.findOrFail(params.id)
+
+    return investment
   }
 
-  /**
-   * Display a single investment.
-   * GET investments/:id
-   *
-   * @param {object} ctx
-   * @param {Request} ctx.request
-   * @param {Response} ctx.response
-   * @param {View} ctx.view
-   */
-  async show ({ params, request, response, view }) {
+  async update ({ params, request }) {
+    const investment = await Investment.findOrFail(params.id)
+    const data = request.only([
+      'name',
+      'type',
+      'tax',
+      'application_date',
+      'redeem_date',
+      'amount'
+    ])
+
+    investment.merge(data)
+
+    await investment.save()
+
+    return investment
   }
 
-  /**
-   * Render a form to update an existing investment.
-   * GET investments/:id/edit
-   *
-   * @param {object} ctx
-   * @param {Request} ctx.request
-   * @param {Response} ctx.response
-   * @param {View} ctx.view
-   */
-  async edit ({ params, request, response, view }) {
-  }
+  async destroy ({ params }) {
+    const investment = await Investment.findOrFail(params.id)
 
-  /**
-   * Update investment details.
-   * PUT or PATCH investments/:id
-   *
-   * @param {object} ctx
-   * @param {Request} ctx.request
-   * @param {Response} ctx.response
-   */
-  async update ({ params, request, response }) {
-  }
-
-  /**
-   * Delete a investment with id.
-   * DELETE investments/:id
-   *
-   * @param {object} ctx
-   * @param {Request} ctx.request
-   * @param {Response} ctx.response
-   */
-  async destroy ({ params, request, response }) {
+    investment.delete()
   }
 }
 

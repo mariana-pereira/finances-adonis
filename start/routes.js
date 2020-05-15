@@ -12,6 +12,12 @@ Route.group(() => {
   Route.resource('accounts', 'AccountController').apiOnly()
   Route.resource('accounts.transactions', 'TransactionController').apiOnly()
 
+  Route.get('investments', 'InvestmentController.index')
+  Route.post('accounts/:accounts_id/targets/:targets_id/investments', 'InvestmentController.store')
+  Route.get('investments/:id', 'InvestmentController.show')
+  Route.put('investments/:id', 'InvestmentController.update')
+  Route.delete('investments/:id', 'InvestmentController.destroy')
+
   Route.resource('cards', 'CardController').apiOnly()
   Route.resource('cards.invoices', 'InvoiceController').apiOnly()
   Route.resource('cards.invoices.expenses', 'ExpenseController').apiOnly()
