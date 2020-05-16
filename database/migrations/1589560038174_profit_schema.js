@@ -16,6 +16,14 @@ class ProfitSchema extends Schema {
         .onUpdate('CASCADE')
         .onDelete('CASCADE')
       table
+        .integer('account_id')
+        .unsigned()
+        .notNullable()
+        .references('id')
+        .inTable('accounts')
+        .onUpdate('CASCADE')
+        .onDelete('CASCADE')
+      table
         .integer('target_id')
         .unsigned()
         .notNullable()

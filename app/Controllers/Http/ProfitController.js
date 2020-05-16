@@ -1,92 +1,50 @@
 'use strict'
 
-/** @typedef {import('@adonisjs/framework/src/Request')} Request */
-/** @typedef {import('@adonisjs/framework/src/Response')} Response */
-/** @typedef {import('@adonisjs/framework/src/View')} View */
+const Profit = use('App/Models/Profit')
 
-/**
- * Resourceful controller for interacting with profits
- */
 class ProfitController {
-  /**
-   * Show a list of all profits.
-   * GET profits
-   *
-   * @param {object} ctx
-   * @param {Request} ctx.request
-   * @param {Response} ctx.response
-   * @param {View} ctx.view
-   */
-  async index ({ request, response, view }) {
+  async index ({ params }) {
+    const profits = await Profit.query()
+      .where('investment_id', params.investments_id)
+      .fetch()
+
+    return profits
   }
 
-  /**
-   * Render a form to be used for creating a new profit.
-   * GET profits/create
-   *
-   * @param {object} ctx
-   * @param {Request} ctx.request
-   * @param {Response} ctx.response
-   * @param {View} ctx.view
-   */
-  async create ({ request, response, view }) {
+  async store ({ params, request }) {
+    const data = request.only(['date', 'amount'])
+
+    const profit = await Profit.create({
+      ...data,
+      investment_id: params.investments_id,
+      account_id: params.accounts_id,
+      target_id: params.targets_id
+    })
+
+    return profit
   }
 
-  /**
-   * Create/save a new profit.
-   * POST profits
-   *
-   * @param {object} ctx
-   * @param {Request} ctx.request
-   * @param {Response} ctx.response
-   */
-  async store ({ request, response }) {
+  async show ({ params }) {
+    const profit = await Profit.findOrFail(params.id)
+
+    return profit
   }
 
-  /**
-   * Display a single profit.
-   * GET profits/:id
-   *
-   * @param {object} ctx
-   * @param {Request} ctx.request
-   * @param {Response} ctx.response
-   * @param {View} ctx.view
-   */
-  async show ({ params, request, response, view }) {
-  }
-
-  /**
-   * Render a form to update an existing profit.
-   * GET profits/:id/edit
-   *
-   * @param {object} ctx
-   * @param {Request} ctx.request
-   * @param {Response} ctx.response
-   * @param {View} ctx.view
-   */
-  async edit ({ params, request, response, view }) {
-  }
-
-  /**
-   * Update profit details.
-   * PUT or PATCH profits/:id
-   *
-   * @param {object} ctx
-   * @param {Request} ctx.request
-   * @param {Response} ctx.response
-   */
   async update ({ params, request, response }) {
+    const profit = await Profit.findOrFail(params.id)
+    const data = request.only(['date', 'amount'])
+
+    profit.merge(data)
+
+    await profit.save()
+
+    return profit
   }
 
-  /**
-   * Delete a profit with id.
-   * DELETE profits/:id
-   *
-   * @param {object} ctx
-   * @param {Request} ctx.request
-   * @param {Response} ctx.response
-   */
-  async destroy ({ params, request, response }) {
+  async destroy ({ params }) {
+    const profit = await Profit.findOrFail(params.id)
+
+    profit.delete()
   }
 }
 
