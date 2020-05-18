@@ -23,12 +23,26 @@ class AccountController {
   async show ({ params }) {
     const account = await Account.findOrFail(params.id)
 
+    const transactions = await account.transactions().fetch()
+
     const accountBalance = await Database
       .from('transactions')
       .sum('amount')
       .where('account_id', account.id)
 
-    return { account, accountBalance }
+    const investments = await Database
+      .from('investments')
+      .sum('amount')
+      .where('account_id', account.id)
+
+    const profits = await Database
+      .from('profits')
+      .sum('amount')
+      .where('account_id', account.id)
+
+    const investmentsBalance = parseFloat(investments[0].sum) + parseFloat(profits[0].sum)
+
+    return { account, accountBalance, investmentsBalance, transactions }
   }
 
   async update ({ params, request }) {

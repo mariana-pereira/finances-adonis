@@ -7,7 +7,7 @@ class Account extends Model {
     return this.belongsTo('App/Models/User')
   }
 
-  transaction () {
+  transactions () {
     return this.hasMany('App/Models/Transaction')
   }
 }
