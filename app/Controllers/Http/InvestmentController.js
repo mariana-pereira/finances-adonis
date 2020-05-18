@@ -1,6 +1,7 @@
 'use strict'
 
 const Investment = use('App/Models/Investment')
+const Database = use('Database')
 
 class InvestmentController {
   async index ({ auth }) {
@@ -34,7 +35,14 @@ class InvestmentController {
   async show ({ params }) {
     const investment = await Investment.findOrFail(params.id)
 
-    return investment
+    const profits = await Database
+      .from('profits')
+      .sum('amount')
+      .where('investment_id', investment.id)
+
+    const totalAmount = parseFloat(investment.amount) + parseFloat(profits[0].sum)
+
+    return { investment, profits, totalAmount }
   }
 
   async update ({ params, request }) {

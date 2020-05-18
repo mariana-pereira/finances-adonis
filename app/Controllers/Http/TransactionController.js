@@ -14,7 +14,7 @@ class TransactionController {
 
     const yearTransactions = await Database
       .raw(
-        'select * from transactions where user_id = ? and EXTRACT(Year FROM date) = ?',
+        'select * from transactions where user_id = ? and EXTRACT(YEAR FROM date) = ?',
         [auth.user.id, date.getFullYear()]
       )
 
