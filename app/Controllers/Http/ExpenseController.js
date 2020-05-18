@@ -1,14 +1,27 @@
 'use strict'
 
+const Database = use('Database')
 const Expense = use('App/Models/Expense')
 
 class ExpenseController {
   async index ({ auth }) {
-    const expenses = await Expense.query()
-      .where('user_id', auth.user.id)
-      .fetch()
+    const date = new Date()
+    const monthExpenses = await Database
+      .raw(
+        'select * from expenses where user_id = ? and EXTRACT(MONTH FROM date) = ?',
+        [auth.user.id, date.getMonth() + 1]
+      )
 
-    return expenses
+    const yearExpenses = await Database
+      .raw(
+        'select * from expenses where user_id = ? and EXTRACT(YEAR FROM date) = ?',
+        [auth.user.id, date.getFullYear()]
+      )
+
+    return {
+      month: monthExpenses.rows,
+      year: yearExpenses.rows
+    }
   }
 
   async store ({ params, request, auth }) {
