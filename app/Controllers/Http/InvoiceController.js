@@ -28,12 +28,14 @@ class InvoiceController {
   async show ({ params }) {
     const invoice = await Invoice.findOrFail(params.id)
 
+    const expenses = await invoice.expenses().fetch()
+
     const invoiceAmount = await Database
       .from('expenses')
       .sum('amount')
       .where('invoice_id', invoice.id)
 
-    return { invoice, invoiceAmount }
+    return { invoice, invoiceAmount, expenses }
   }
 
   async update ({ params, request }) {
