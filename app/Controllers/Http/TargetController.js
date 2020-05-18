@@ -1,5 +1,6 @@
 'use strict'
 
+const Database = use('Database')
 const Target = use('App/Models/Target')
 
 class TargetController {
@@ -22,7 +23,19 @@ class TargetController {
   async show ({ params }) {
     const target = await Target.findOrFail(params.id)
 
-    return target
+    const investments = await Database
+      .from('investments')
+      .sum('amount')
+      .where('target_id', target.id)
+
+    const profits = await Database
+      .from('profits')
+      .sum('amount')
+      .where('target_id', target.id)
+
+    const actualAmount = parseFloat(investments[0].sum) + parseFloat(profits[0].sum)
+
+    return { target, actualAmount }
   }
 
   async update ({ params, request }) {
