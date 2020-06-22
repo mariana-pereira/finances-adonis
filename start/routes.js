@@ -1,21 +1,32 @@
 'use strict'
 
-/*
-|--------------------------------------------------------------------------
-| Routes
-|--------------------------------------------------------------------------
-|
-| Http routes are entry points to your web application. You can create
-| routes for different URLs and bind Controller actions to them.
-|
-| A complete guide on routing is available here.
-| http://adonisjs.com/docs/4.1/routing
-|
-*/
-
-/** @type {typeof import('@adonisjs/framework/src/Route/Manager')} */
 const Route = use('Route')
 
-Route.get('/', () => {
-  return { greeting: 'Hello world in JSON' }
-})
+Route.post('users', 'UserController.store')
+Route.post('sessions', 'SessionController.store')
+
+Route.post('passwords', 'ForgotPasswordController.store')
+Route.put('passwords', 'ForgotPasswordController.update')
+
+Route.group(() => {
+  Route.resource('accounts', 'AccountController').apiOnly()
+  Route.resource('accounts.transactions', 'TransactionController').apiOnly()
+
+  Route.get('investments', 'InvestmentController.index')
+  Route.post('accounts/:accounts_id/targets/:targets_id/investments', 'InvestmentController.store')
+  Route.get('investments/:id', 'InvestmentController.show')
+  Route.put('investments/:id', 'InvestmentController.update')
+  Route.delete('investments/:id', 'InvestmentController.destroy')
+
+  Route.get('investments/:investments_id/profits', 'ProfitController.index')
+  Route.post('accounts/:accounts_id/targets/:targets_id/investments/:investments_id/profits', 'ProfitController.store')
+  Route.get('profits/:id', 'ProfitController.show')
+  Route.put('profits/:id', 'ProfitController.update')
+  Route.delete('profits/:id', 'ProfitController.destroy')
+
+  Route.resource('cards', 'CardController').apiOnly()
+  Route.resource('cards.invoices', 'InvoiceController').apiOnly()
+  Route.resource('cards.invoices.expenses', 'ExpenseController').apiOnly()
+
+  Route.resource('targets', 'TargetController').apiOnly()
+}).middleware(['auth'])
